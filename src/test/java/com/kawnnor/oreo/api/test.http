@@ -1,0 +1,15 @@
+GET http://localhost:8080/project
+
+##
+
+PUT http://localhost:8080/project/2 HTTP/1.1
+{
+    "id":"2",
+    "name": "测试新增项目",
+    "instructions": "这是一个描述"
+}
+
+
+
+##
+DELETE http://localhost:8080/project/1 HTTP/1.1

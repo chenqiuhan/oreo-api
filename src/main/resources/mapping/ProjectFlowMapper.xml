@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.kawnnor.oreo.api.mapper.ProjectFlowMapper" >
+  
+  
+  <select id="selectProjectFlow" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+    SELECT * FROM project_bank_flow_temp WHERE 1=1 
+    <if test="projectId != null and projectId!=''"> 
+        AND projectId= #{projectId}
+    </if>
+    <if test="transactionNum != null and transactionNum != ''">
+        AND transactionNum=#{transactionNum}
+    </if>
+    <if test="transactionDate != null">
+        AND transactionDate=${transactionDateStr}
+    </if>
+    <if test="toAccount != null and toAccount !=''">
+        AND toAccount like '%${toAccount}%'
+    </if>
+    <if test="toName != null and toName != ''">
+        AND toName like '%${toName}%'
+    </if>
+    <if test="status != null">
+        AND status=#{status}
+    </if>
+    ORDER BY createDate desc
+  </select>
+
+<select id="selectProjectThreeFlow" resultType="com.kawnnor.oreo.api.model.ProjectThreeFlow" parameterType="com.kawnnor.oreo.api.model.ProjectThreeFlow" >
+    SELECT * FROM project_three_flow_temp WHERE 1=1 
+    <if test="projectId != null and projectId!=''"> 
+        AND projectId= #{projectId}
+    </if>
+    <if test="transactionNum != null and transactionNum != ''">
+        AND transactionNum=#{transactionNum}
+    </if>
+    <if test="transactionDate != null">
+        AND transactionDate=${transactionDateStr}
+    </if>
+    <if test="status != null">
+        AND status=#{status}
+    </if>
+    <if test="payAccount != null and payAccount != ''">
+        AND payAccount like '%${payAccount}%'
+    </if>
+    <if test="receiveAccount != null and receiveAccount != ''">
+        AND receiveAccount like '%${receiveAccount}%'
+    </if>
+    ORDER BY createDate desc
+  </select>
+
+  <insert id="saveProjectBankFlowTemp" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >  
+    INSERT INTO project_bank_flow_temp(
+        projectId,account,toName,toAccount,money,balance,borrowFlag,
+        transactionType,transactionResult,transactionDate,transactionBank,
+        transactionOutlets,transactionNum,voucherNum,ending,transactionPlace,
+        business,ip,mac,createDate,status,remark) 
+    VALUES  
+        (#{projectId},#{account},#{toName},#{toAccount},#{money},#{balance},#{borrowFlag},
+        #{transactionType},#{transactionResult},#{transactionDate},#{transactionBank},
+        #{transactionOutlets},#{transactionNum},#{voucherNum},#{ending},#{transactionPlace},
+        #{business},#{ip},#{mac},#{createDate},#{status},#{remark});  
+    </insert>
+
+    <select id="selectFlowDataCount" resultType="com.kawnnor.oreo.api.model.FlowDataCount" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        SELECT status,count(*) AS count FROM project_bank_flow_temp WHERE 1=1 
+        <if test="projectId != null and projectId!=''"> 
+            AND projectId= #{projectId}
+        </if>
+        <if test="status != null">
+            AND status=#{status}
+        </if>
+        GROUP BY status
+    </select>
+    <delete id="deleteBankFlowById" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow">
+        delete from project_bank_flow_temp where id = #{id}
+    </delete>
+
+    <delete id="deleteThreeFlowById" parameterType="com.kawnnor.oreo.api.model.ProjectThreeFlow">
+        delete from project_three_flow_temp where id = #{id}
+    </delete>
+
+    <insert id="saveProjectThreeFlowTemp" parameterType="com.kawnnor.oreo.api.model.ProjectThreeFlow" >  
+    INSERT INTO project_three_flow_temp(
+        projectId,transactionNum,payAccount,payBank,payBankNum,money,balance,receiveAccount,
+        receiveBank,receiveBankNum,transactionDate,transactionType,
+        payType,outIn,moneyType,posNum,equipment,bankTransactionNum,note,
+        business,ip,mac,longitude,latitude,equipmentNum,createDate,status,remark) 
+    VALUES  
+        (#{projectId},#{transactionNum},#{payAccount},#{payBank},#{payBankNum},#{money},#{balance},#{receiveAccount},
+        #{receiveBank},#{receiveBankNum},#{transactionDate},#{transactionType},
+        #{payType},#{outIn},#{moneyType},#{posNum},#{equipment},#{bankTransactionNum},#{note},
+        #{business},#{ip},#{mac},#{longitude},#{latitude},#{equipmentNum},#{createDate},#{status},#{remark});  
+    </insert>
+
+    <select id="selectThreeFlowDataCount" resultType="com.kawnnor.oreo.api.model.FlowDataCount" parameterType="com.kawnnor.oreo.api.model.ProjectThreeFlow" >
+        SELECT status,count(*) AS count FROM project_three_flow_temp WHERE 1=1 
+        <if test="projectId != null and projectId!=''"> 
+            AND projectId= #{projectId}
+        </if>
+        <if test="status != null">
+            AND status=#{status}
+        </if>
+        GROUP BY status
+    </select>
+
+    <select id="selectBankDataShow" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        SELECT DISTINCT(account) FROM 
+            (SELECT b.account as account FROM project_bank_flow b WHERE b.projectId=#{projectId}
+        UNION
+        SELECT f.toAccount as account FROM project_bank_flow f WHERE f.projectId=#{projectId}) a
+    </select>
+    <select id="selectBankInitialNode" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        select b.projectId,b.account,count(b.account) as status,min(b.transactionDate) as transactionDate from project_bank_flow b where b.projectId=#{projectId}
+            <if test="account != null and account != ''">
+                and b.account like '%${account}%'
+            </if> 
+        group by b.projectId,b.account order by count(b.account) desc
+    </select>
+    <select id="selectBankEarliestByAccount" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        select * from project_bank_flow p where p.projectId=#{projectId}
+            <if test="account != null and account != ''">
+                and (p.account like '%${account}%' or p.toAccount like '%${account}%')
+            </if>
+        order by p.transactionDate limit 1
+    </select>
+    <select id="selectBankDataAfterDate" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        select a.*, b.totalMoney, b._count as count from project_bank_flow a,
+              (select toAccount,
+                      max(a.transactionDate) transactionDate,
+                      SUM(ABS(money)) totalMoney,
+                      count(*) _count
+               from project_bank_flow a  where a.projectId=#{projectId}
+                    and a.transactionDate&gt;=#{transactionDateStrStart} 
+                    and a.transactionDate&lt;#{transactionDateStrEnd} 
+                    and a.transactionResult like '%成功%'
+                    <if test="borrowFlag != null and borrowFlag != ''">
+                    and a.borrowFlag = #{borrowFlag}
+                    </if> 
+                    group by toAccount,borrowFlag) b
+        where a.toAccount = b.toAccount
+        and a.transactionDate = b.transactionDate
+        and a.projectId = #{projectId}
+    </select>
+
+    <select id="selectBankFlow" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        SELECT * FROM project_bank_flow WHERE 1=1 
+        <if test="projectId != null and projectId!=''"> 
+            AND projectId= #{projectId}
+        </if>
+        <if test="transactionNum != null and transactionNum != ''">
+            AND transactionNum=#{transactionNum}
+        </if>
+        <if test="transactionDate != null">
+            AND transactionDate=${transactionDateStr}
+        </if>
+        <if test="transactionDateStrStart != null and transactionDateStrStart != ''">
+            AND transactionDate&gt;=${transactionDateStrStart}
+        </if>
+        <if test="transactionDateStrEnd != null and transactionDateStrEnd != ''">
+            AND transactionDate&lt;${transactionDateStrEnd}
+        </if>
+        <if test="toAccount != null and toAccount !=''">
+            AND toAccount like '%${toAccount}%'
+        </if>
+        <if test="toName != null and toName != ''">
+            AND toName like '%${toName}%'
+        </if>
+        <if test="account != null and account !=''">
+            AND account like '%${account}%'
+        </if>
+        <if test="status != null">
+            AND status=#{status}
+        </if>
+        <if test="borrowFlag != null and borrowFlag != ''">
+            and borrowFlag = #{borrowFlag}
+        </if>
+        <if test="minMoney != null">
+            AND ABS(money)&gt;=${minMoney}
+        </if>
+        <if test="maxMoney != null ">
+            AND ABS(money)&lt;${maxMoney}
+        </if>   
+        ORDER BY transactionDate 
+  </select>
+
+  <select id="selectBankOutToAccountByDate" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        select toAccount,toName from project_bank_flow where projectId = #{projectId} 
+        <if test="account != null and account != ''">
+            and account like '%${account}%'
+        </if>
+        <if test="transactionDateStrStart != null and transactionDateStrStart != ''">
+            and transactionDate&gt;=${transactionDateStrStart}
+        </if>
+        <if test="transactionDateStrEnd != null and transactionDateStrEnd != ''">
+            and transactionDate&lt;${transactionDateStrEnd}
+        </if>
+            and borrowFlag = '借'
+            group by toAccount,toName
+            order by sum(abs(money)) desc
+    </select>
+
+    <select id="selectBankDataForTable" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+              select toAccount,
+                      SUM(ABS(money)) totalMoney,
+                      count(*) count
+               from project_bank_flow a  where a.projectId=#{projectId}
+                    and a.transactionDate&gt;=#{transactionDateStrStart} 
+                    and a.transactionDate&lt;#{transactionDateStrEnd} 
+                    and a.transactionResult like '%成功%'
+                    <if test="borrowFlag != null and borrowFlag != ''">
+                        and a.borrowFlag = #{borrowFlag}
+                    </if> 
+                    <if test="account != null and account != ''">
+                        and a.account like '%${account}%'
+                    </if>
+                    group by toAccount,borrowFlag
+    </select>
+
+    <select id="selectBankOutInfo" resultType="com.kawnnor.oreo.api.model.ProjectBankFlow" parameterType="com.kawnnor.oreo.api.model.ProjectBankFlow" >
+        SELECT * FROM project_bank_flow WHERE 1=1 
+        <if test="projectId != null and projectId!=''"> 
+            AND projectId= #{projectId}
+        </if>
+        <if test="transactionDate != null">
+            AND transactionDate=${transactionDateStr}
+        </if>
+        <if test="transactionDateStrStart != null and transactionDateStrStart != ''">
+            AND transactionDate&gt;=${transactionDateStrStart}
+        </if>
+        <if test="transactionDateStrEnd != null and transactionDateStrEnd != ''">
+            AND transactionDate&lt;${transactionDateStrEnd}
+        </if>
+        <if test="toAccount != null and toAccount !=''">
+            AND toAccount like '%${toAccount}%'
+        </if>
+        <if test="toName != null and toName != ''">
+            AND toName like '%${toName}%'
+        </if>
+        <if test="status != null">
+            AND status=#{status}
+        </if>
+        AND borrowFlag='借'
+        ORDER BY transactionDate 
+  </select>
+
+</mapper>
